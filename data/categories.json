@@ -1,0 +1,44 @@
+[
+  {
+    "id": 0,
+    "name": "PHP разработка",
+    "slug": "php",
+    "description": "Статьи о PHP, фреймворках и бэкенд разработке"
+  },
+  {
+    "id": 1,
+    "name": "Frontend",
+    "slug": "frontend",
+    "description": "HTML, CSS, JavaScript и современные фронтенд технологии"
+  },
+  {
+    "id": 2,
+    "name": "Базы данных",
+    "slug": "database",
+    "description": "SQL, MySQL, PostgreSQL и работа с данными"
+  },
+  {
+    "id": 3,
+    "name": "Безопасность",
+    "slug": "security",
+    "description": "Защита веб-приложений и лучшие практики безопасности"
+  },
+  {
+    "id": 4,
+    "name": "DevOps",
+    "slug": "devops",
+    "description": "Инструменты и практики для автоматизации и доставки приложений"
+  },
+  {
+    "id": 5,
+    "name": "Машинное обучение",
+    "slug": "machine-learning",
+    "description": "Алгоритмы и модели для анализа данных и предсказаний"
+  },
+  {
+    "id": 6,
+    "name": "Тестирование",
+    "slug": "testing",
+    "description": "Методы и инструменты для обеспечения качества кода"
+  }
+]
