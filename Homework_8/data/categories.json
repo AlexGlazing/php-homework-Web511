@@ -1,0 +1,31 @@
+{
+  "1": {
+    "id": 1,
+    "name": "Frontend",
+    "slug": "frontend",
+    "description": "HTML, CSS, JavaScript и современные фронтенд технологии"
+  },
+  "2": {
+    "id": 2,
+    "name": "Backend",
+    "slug": "backend",
+    "description": "Серверная разработка, базы данных, API и архитектура"
+  },
+  "3": {
+    "id": 3,
+    "name": "DevOps",
+    "slug": "devops",
+    "description": "Контейнеризация, CI/CD, облачные технологии и автоматизация"
+  },    "4": {
+  "id": 4,
+  "name": "Мобильная разработка",
+  "slug": "mobile-dev",
+  "description": "iOS, Android, Flutter, React Native и кроссплатформенная разработка"
+},
+  "5": {
+    "id": 5,
+    "name": "Базы данных",
+    "slug": "databases",
+    "description": "SQL, NoSQL, оптимизация запросов и управление данными"
+  }
+}
