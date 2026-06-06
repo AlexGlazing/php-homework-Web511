@@ -1,4 +1,4 @@
-<h2>Править пост пост</h2>
+<h2>Редактировать пост</h2>
 <form action="/?page=post-edit&action=save" method="post" enctype="application/x-www-form-urlencoded">
     <input type="text" name="id" readonly hidden value="<?= $post['id'] ?? $id ?? '' ?>">
     Категория:<br>

@@ -4,6 +4,25 @@ require __DIR__ . '/vendor/autoload.php';
 
 session_start();
 
+// === Cookies & Sessions demo (per dz.txt) ===
+// Read/normalize theme from cookie (will be used by layout)
+$theme = $_COOKIE['theme'] ?? 'light';
+if (!in_array($theme, ['light', 'dark'], true)) {
+    $theme = 'light';
+}
+$_COOKIE['theme'] = $theme;
+
+// Visit counter via cookie (increment for this request)
+$visitCount = isset($_COOKIE['visit_count']) ? (int)$_COOKIE['visit_count'] + 1 : 1;
+setcookie('visit_count', (string)$visitCount, time() + 3600 * 24 * 30, '/');
+$_COOKIE['visit_count'] = (string)$visitCount; // make new value visible to current request / templates
+
+// Track page views within current session
+if (!isset($_SESSION['page_views'])) {
+    $_SESSION['page_views'] = 0;
+}
+$_SESSION['page_views']++;
+
 use function CompanyName\Blog\enrichPostWithLikes;
 use function CompanyName\Blog\enrichPostsWithLikes;
 use function CompanyName\Blog\getCategories;
@@ -43,6 +62,28 @@ try {
 
             header('Content-Type: application/json');
             echo json_encode($result, JSON_UNESCAPED_UNICODE);
+            exit;
+
+        case $page === 'clear-cookies':
+            // Clear demo cookies (visit counter + theme). Other cookies untouched.
+            setcookie('visit_count', '', time() - 3600, '/');
+            setcookie('theme', '', time() - 3600, '/');
+            unset($_COOKIE['visit_count'], $_COOKIE['theme']);
+            // Try to return user to the page they were on
+            $redirect = $_GET['redirect'] ?? ($_SERVER['HTTP_REFERER'] ?? '/');
+            header('Location: ' . $redirect);
+            exit;
+
+        case $page === 'clear-session':
+            // Reset our session demo data and regenerate id (likes will see user as new)
+            $_SESSION = [];
+            if (session_status() === PHP_SESSION_ACTIVE) {
+                session_destroy();
+            }
+            session_start();
+            session_regenerate_id(true);
+            $redirect = $_GET['redirect'] ?? ($_SERVER['HTTP_REFERER'] ?? '/');
+            header('Location: ' . $redirect);
             exit;
 
         case $page === 'index':
