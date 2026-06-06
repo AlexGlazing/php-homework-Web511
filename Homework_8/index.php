@@ -4,20 +4,19 @@ require __DIR__ . '/vendor/autoload.php';
 
 session_start();
 
-// === Cookies & Sessions demo (per dz.txt) ===
-// Read/normalize theme from cookie (will be used by layout)
+
 $theme = $_COOKIE['theme'] ?? 'light';
 if (!in_array($theme, ['light', 'dark'], true)) {
     $theme = 'light';
 }
 $_COOKIE['theme'] = $theme;
 
-// Visit counter via cookie (increment for this request)
+
 $visitCount = isset($_COOKIE['visit_count']) ? (int)$_COOKIE['visit_count'] + 1 : 1;
 setcookie('visit_count', (string)$visitCount, time() + 3600 * 24 * 30, '/');
-$_COOKIE['visit_count'] = (string)$visitCount; // make new value visible to current request / templates
+$_COOKIE['visit_count'] = (string)$visitCount; 
 
-// Track page views within current session
+
 if (!isset($_SESSION['page_views'])) {
     $_SESSION['page_views'] = 0;
 }

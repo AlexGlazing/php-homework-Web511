@@ -2,11 +2,7 @@
 <form action="" method="get">
     <input type="hidden" name="page" value="calculator">
     <input id="arg1" type="text" name="arg1" value="<?= htmlspecialchars((string)$arg1) ?>">
-    <button data-operation="+" class="calcButton" type="button" style="width: 50px;height: 30px; cursor:pointer">+</button>
-    <button data-operation="-" class="calcButton" type="button" style="width: 50px;height: 30px; cursor:pointer">-</button>
-    <button data-operation="*" class="calcButton" type="button" style="width: 50px;height: 30px; cursor:pointer">*</button>
-    <button data-operation="/" class="calcButton" type="button" style="width: 50px;height: 30px; cursor:pointer">/</button>
-    <br>
+
 
     <input style="width: 50px;height: 30px; cursor:pointer;border: 2px solid <?= $operation === '+' ? 'green' : 'white' ?>"
            type="submit" name="operation"
