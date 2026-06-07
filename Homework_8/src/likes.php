@@ -47,7 +47,7 @@ function saveLikes(array $likes): void
 
 function getCurrentUserId(): string
 {
-    return session_id();
+    return $_COOKIE['uid'] ?? 'guest';
 }
 
 function getLikeCount(int|string $postId): int

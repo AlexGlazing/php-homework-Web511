@@ -17,6 +17,10 @@ use function CompanyName\Blog\updatePost;
 
 session_start();
 
+function isAdmin(): bool
+{
+    return !empty($_SESSION['is_admin']);
+}
 
 $theme = $_COOKIE['theme'] ?? 'light';
 if (!in_array($theme, ['light', 'dark'], true)) {
@@ -24,16 +28,12 @@ if (!in_array($theme, ['light', 'dark'], true)) {
 }
 $_COOKIE['theme'] = $theme;
 
-
-$visitCount = isset($_COOKIE['visit_count']) ? (int)$_COOKIE['visit_count'] + 1 : 1;
-setcookie('visit_count', (string)$visitCount, time() + 3600 * 24 * 30, '/');
-$_COOKIE['visit_count'] = (string)$visitCount; 
-
-
-if (!isset($_SESSION['page_views'])) {
-    $_SESSION['page_views'] = 0;
+// Ensure a persistent uid cookie for like identity (cookie-backed, as requested)
+if (empty($_COOKIE['uid'])) {
+    $uid = bin2hex(random_bytes(16));
+    setcookie('uid', $uid, time() + 3600 * 24 * 365, '/');
+    $_COOKIE['uid'] = $uid;
 }
-$_SESSION['page_views']++;
 
 
 
@@ -65,34 +65,44 @@ try {
             echo json_encode($result, JSON_UNESCAPED_UNICODE);
             exit;
 
-        case $page === 'clear-cookies':
-            // Clear demo cookies (visit counter + theme). Other cookies untouched.
-            setcookie('visit_count', '', time() - 3600, '/');
-            setcookie('theme', '', time() - 3600, '/');
-            unset($_COOKIE['visit_count'], $_COOKIE['theme']);
-            // Try to return user to the page they were on
-            $redirect = $_GET['redirect'] ?? ($_SERVER['HTTP_REFERER'] ?? '/');
-            header('Location: ' . $redirect);
-            exit;
-
-        case $page === 'clear-session':
-            // Reset our session demo data and regenerate id (likes will see user as new)
-            $_SESSION = [];
-            if (session_status() === PHP_SESSION_ACTIVE) {
-                session_destroy();
+        case $page === 'login':
+            if (isAdmin()) {
+                header('Location: /?page=posts');
+                exit;
             }
-            session_start();
-            session_regenerate_id(true);
-            $redirect = $_GET['redirect'] ?? ($_SERVER['HTTP_REFERER'] ?? '/');
-            header('Location: ' . $redirect);
+            $error = null;
+            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                $login = trim($_POST['login'] ?? '');
+                $password = $_POST['password'] ?? '';
+                if ($login === 'admin' && $password === '123') {
+                    $_SESSION['is_admin'] = true;
+                    $redirect = $_GET['redirect'] ?? '/?page=posts';
+                    header('Location: ' . $redirect);
+                    exit;
+                } else {
+                    $error = 'Неверный логин или пароль';
+                }
+            }
+            echo render('login', [
+                'error' => $error,
+            ]);
+            break;
+
+        case $page === 'logout':
+            unset($_SESSION['is_admin']);
+            header('Location: /');
             exit;
 
         case $page === 'index':
-            echo render('index');
+            echo render('index', ['isAdmin' => isAdmin()]);
             break;
 
         case $page === 'posts':
             if (isset($_GET['action']) && $_GET['action'] === 'delete') {
+                if (!isAdmin()) {
+                    header('Location: /?page=login');
+                    exit;
+                }
                 $id = $_GET['id'] ?? null;
                 $posts = getPosts();
                 unset($posts[$id]);
@@ -117,6 +127,7 @@ try {
             echo render('posts/index', [
                 'posts' => $posts,
                 'success' => $success,
+                'isAdmin' => isAdmin(),
             ]);
             break;
 
@@ -140,6 +151,10 @@ try {
             break;
 
         case $page === 'post-create':
+            if (!isAdmin()) {
+                header('Location: /?page=login&redirect=' . urlencode('/?page=post-create'));
+                exit;
+            }
             $categories = getCategories();
             $category_id = null;
             $title = '';
@@ -200,7 +215,7 @@ try {
                         'title' => $title,
                         'content' => $content,
                         'date' => date('Y-m-d H:i'),
-                        'author' => 'Guest',
+                        'author' => 'Администратор',
                     ];
 
                     $lastKey = array_key_last($posts);
@@ -225,6 +240,12 @@ try {
             break;
 
         case $page === 'post-edit':
+            if (!isAdmin()) {
+                $idForRedirect = isset($_GET['id']) ? (int)$_GET['id'] : '';
+                $redirect = '/?page=post-edit&action=edit&id=' . $idForRedirect;
+                header('Location: /?page=login&redirect=' . urlencode($redirect));
+                exit;
+            }
             $category_id = null;
             $post = [];
             $id = null;

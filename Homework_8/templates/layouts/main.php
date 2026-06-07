@@ -22,17 +22,13 @@
                 <span class="toggle-text">Тёмная тема</span>
             </label>
 
-            <!-- Cookie demo: visit counter + clear button -->
-            <span class="stat">
-                Визиты: <strong id="visit-count"><?= (int)($_COOKIE['visit_count'] ?? 0) ?></strong>
-                <button type="button" class="clear-btn" onclick="location.href='/?page=clear-cookies'" title="Очистить куки (счётчик визитов и сохранённая тема)">очистить</button>
-            </span>
-
-            <!-- Session demo: views in this session + clear button -->
-            <span class="stat">
-                В сессии: <strong><?= (int)($_SESSION['page_views'] ?? 0) ?></strong>
-                <button type="button" class="clear-btn" onclick="location.href='/?page=clear-session'" title="Сбросить сессию (в т.ч. идентификатор для лайков)">сбросить сессию</button>
-            </span>
+            <!-- Admin auth widget (cookie uid for likes kept; admin flag in session) -->
+            <?php if (!empty($_SESSION['is_admin'])): ?>
+                <span class="stat">Админ</span>
+                <a href="/?page=logout" class="auth-link" title="Выйти из аккаунта администратора">выйти</a>
+            <?php else: ?>
+                <a href="/?page=login" class="auth-link" title="Войти для создания и редактирования постов">войти</a>
+            <?php endif; ?>
         </div>
     </header>
 
@@ -40,7 +36,7 @@
     <?=$content?>
 
     <footer class="site-footer">
-        <small>Homework 8 • PHP Блог • Cookies, Sessions &amp; Theme demo</small>
+        <small>Homework 8 • PHP Блог • Admin &amp; Cookies</small>
     </footer>
 
     <!-- Instant theme toggle via JS (sets cookie, toggles class, no reload needed) -->

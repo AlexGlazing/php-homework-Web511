@@ -1,4 +1,6 @@
+<?php if (!empty($isAdmin)): ?>
 <a href="/?page=post-create"> <button>Создать пост</button></a>
+<?php endif; ?>
 <h2>Посты</h2>
 <?php if (!empty($success)): ?>
     <p style="color:green"><?=$success?></p>
@@ -10,9 +12,11 @@
                 <a href="/?page=post&id=<?= $post['id'] ?>">
                     <?= htmlspecialchars($post['title']) ?>
                 </a>
-                &nbsp;&nbsp;&nbsp;
-                <a href="/?page=post-edit&action=edit&id=<?=$post['id']?>">[edit]</a>
-                <button data-id="<?=$post['id']?>" type="button" class="deleteBtn" style="width: 50px;height: 30px; cursor:pointer">[x]</button>
+                <?php if (!empty($isAdmin)): ?>
+                    &nbsp;&nbsp;&nbsp;
+                    <a href="/?page=post-edit&action=edit&id=<?=$post['id']?>">[edit]</a>
+                    <button data-id="<?=$post['id']?>" type="button" class="deleteBtn" style="width: 50px;height: 30px; cursor:pointer">[x]</button>
+                <?php endif; ?>
             </h3>
         <p><?= htmlspecialchars($post['date']) ?></p>
         <p><?= htmlspecialchars($post['author']) ?></p>

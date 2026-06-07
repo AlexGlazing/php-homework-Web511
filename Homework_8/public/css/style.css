@@ -481,7 +481,8 @@ button[type="submit"]:hover {
     font-variant-numeric: tabular-nums;
 }
 
-.clear-btn {
+/* Auth links in header (replaces previous clear-btn usage for login/logout) */
+.auth-link {
     font-size: 0.8rem;
     padding: 2px 8px;
     border-radius: 999px;
@@ -496,18 +497,13 @@ button[type="submit"]:hover {
     line-height: 1.1;
 }
 
-button.clear-btn {
-    appearance: none;
-    -webkit-appearance: none;
-}
-
-.clear-btn:hover {
+.auth-link:hover {
     background: #fee2e2;
     color: #991b1b;
     border-color: #fecaca;
 }
 
-.dark .clear-btn:hover {
+.dark .auth-link:hover {
     background: #4c1d1d;
     color: #fecaca;
     border-color: #7f1d1d;
