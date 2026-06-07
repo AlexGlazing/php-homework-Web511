@@ -2,6 +2,19 @@
 
 require __DIR__ . '/vendor/autoload.php';
 
+use function CompanyName\Blog\enrichPostWithLikes;
+use function CompanyName\Blog\enrichPostsWithLikes;
+use function CompanyName\Blog\getCategories;
+use function CompanyName\Blog\getPost;
+use function CompanyName\Blog\getPosts;
+use function CompanyName\Blog\getCategoryBySlug;
+use function CompanyName\Blog\getPostsCategoriesBySlug;
+use function CompanyName\Blog\render;
+use function CompanyName\Blog\render_template;
+use function CompanyName\Blog\redirectToError;
+use function CompanyName\Blog\toggleLike;
+use function CompanyName\Blog\updatePost;
+
 session_start();
 
 
@@ -22,18 +35,7 @@ if (!isset($_SESSION['page_views'])) {
 }
 $_SESSION['page_views']++;
 
-use function CompanyName\Blog\enrichPostWithLikes;
-use function CompanyName\Blog\enrichPostsWithLikes;
-use function CompanyName\Blog\getCategories;
-use function CompanyName\Blog\getPost;
-use function CompanyName\Blog\getPosts;
-use function CompanyName\Blog\getCategoryBySlug;
-use function CompanyName\Blog\getPostsCategoriesBySlug;
-use function CompanyName\Blog\render;
-use function CompanyName\Blog\render_template;
-use function CompanyName\Blog\redirectToError;
-use function CompanyName\Blog\toggleLike;
-use function CompanyName\Blog\updatePost;
+
 
 const STATUSES = [
     'ok' => 'Пост успешно создан',
@@ -140,10 +142,12 @@ try {
         case $page === 'post-create':
             $categories = getCategories();
             $category_id = null;
+            $title = '';
+            $content = '';
+            $errors = [];
+            $safeFileName = null;
 
             if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-                $errors = [];
-
                 if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
                     $extensionMimeMap = [
                         'jpg' => 'image/jpeg',
@@ -156,7 +160,7 @@ try {
                     if ($_FILES['image']['size'] > $maxFileSize) {
                         $errors['image'] = 'Файл слишком большой';
                     }
-                    $uploadDir = 'upload/';
+                    $uploadDir = __DIR__ . '/public/upload/';
                     $fileName = $_FILES['image']['name'];
                     $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
 
@@ -167,6 +171,9 @@ try {
                     $safeFileName = uniqid() . '_' . date('Y-m-d_H-i-s') . '.' . $fileExtension;
 
                     if (!isset($errors['image'])) {
+                        if (!is_dir($uploadDir)) {
+                            mkdir($uploadDir, 0777, true);
+                        }
                         if (!move_uploaded_file($_FILES['image']['tmp_name'], $uploadDir . $safeFileName)) {
                             $errors['image'] = 'Файл не загружен';
                         }
@@ -199,7 +206,7 @@ try {
                     $lastKey = array_key_last($posts);
                     $posts[$lastKey]['id'] = $lastKey;
                     $posts[$lastKey] = array_merge(['id' => $lastKey], $posts[$lastKey]);
-                    $posts[$lastKey]['image'] = $safeFileName ?? null;
+                    $posts[$lastKey]['image'] = $safeFileName;
 
                     file_put_contents(__DIR__ . '/data/posts.json', json_encode($posts, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
 
@@ -210,16 +217,20 @@ try {
 
             echo render('posts/create', [
                 'categories' => $categories,
-                'title' => $title ?? '',
+                'title' => $title,
                 'category_id' => $category_id,
-                'content' => $content ?? '',
-                'errors' => $errors ?? null,
+                'content' => $content,
+                'errors' => $errors,
             ]);
             break;
 
         case $page === 'post-edit':
             $category_id = null;
             $post = [];
+            $id = null;
+            $title = '';
+            $content = '';
+            $errors = [];
             $action = $_GET['action'] ?? '';
 
             switch ($action) {
@@ -265,10 +276,10 @@ try {
             echo render('posts/edit', [
                 'post' => $post,
                 'categories' => $categories,
-                'title' => $title ?? '',
+                'title' => $title,
                 'category_id' => $category_id,
-                'content' => $content ?? '',
-                'errors' => $errors ?? null,
+                'content' => $content,
+                'errors' => $errors,
                 'id' => $id,
             ]);
             break;
@@ -340,83 +351,6 @@ try {
                 'errorCode' => $errorCode,
                 'config' => $config,
                 'errorId' => $errorId,
-            ]);
-            break;
-
-        case $page === 'calculator':
-            $errors = [];
-            $arg1 = 0;
-            $arg2 = 0;
-            $result = 0;
-            $operation = '';
-            $textResult = '';
-
-            if (!empty($_GET['arg1'])) {
-                $arg1 = $_GET['arg1'];
-                $arg2 = $_GET['arg2'] ?? '';
-                $operation = $_GET['operation'] ?? '';
-
-                if ($arg1 === '' || $arg2 === '') {
-                    $errors[] = 'Поле не должно быть пустым';
-                }
-
-                if (!(is_numeric($arg1) && is_numeric($arg2))) {
-                    $errors[] = 'Введите число, а не строку';
-                }
-
-                if (!in_array($operation, ['+', '-', '*', '/'])) {
-                    $errors[] = 'Не верная операция';
-                }
-
-                if (empty($errors)) {
-                    $arg1 = (float)$arg1;
-                    $arg2 = (float)$arg2;
-
-                    $result = match ($operation) {
-                        '+' => $arg1 + $arg2,
-                        '-' => $arg1 - $arg2,
-                        '*' => $arg1 * $arg2,
-                        '/' => ($arg2 !== 0.0) ? $arg1 / $arg2 : 'Деление на 0',
-                        default => throw new Exception('Ошибка'),
-                    };
-
-                    if (is_numeric($result)) {
-                        $result = round($result, 2);
-                    }
-
-                    $textResult = "$arg1 $operation $arg2 = $result";
-                }
-            }
-
-            if (isset($_GET['ajax'])) {
-                if (empty($errors)) {
-                    $result = [
-                        'status' => 'success',
-                        'data' => [
-                            'result' => $result,
-                            'textResult' => $textResult,
-                        ],
-                    ];
-                } else {
-                    $result = [
-                        'status' => 'error',
-                        'errors' => $errors,
-                    ];
-                }
-
-                header('Content-Type: application/json');
-                echo json_encode($result, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-                exit;
-            }
-
-            echo render('calculator', [
-                'arg1' => $arg1,
-                'arg2' => $arg2,
-                'result' => $result,
-                'operation' => $operation,
-                'textResult' => $textResult,
-                'errors' => $errors,
-                'titleSite' => 'Калькулятор',
             ]);
             break;
 

@@ -1,5 +1,5 @@
 <h2>Редактировать пост</h2>
-<form action="/?page=post-edit&action=save" method="post" enctype="application/x-www-form-urlencoded">
+<form action="/?page=post-edit&action=save" method="post">
     <input type="text" name="id" readonly hidden value="<?= $post['id'] ?? $id ?? '' ?>">
     Категория:<br>
     <select name="category_id">

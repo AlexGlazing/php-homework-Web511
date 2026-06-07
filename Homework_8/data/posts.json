@@ -119,5 +119,14 @@
         "content": "$match, $group, $lookup — как заменить сложные SQL-запросы в NoSQL.",
         "date": "2024-02-14",
         "author": "Никита"
+    },
+    "19": {
+        "id": 19,
+        "category_id": 5,
+        "title": "SQL как реляционная база данных",
+        "content": "Разбор SQL-ки",
+        "date": "2026-06-07 07:43",
+        "author": "Guest",
+        "image": null
     }
 }

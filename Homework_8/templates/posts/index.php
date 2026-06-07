@@ -4,27 +4,21 @@
     <p style="color:green"><?=$success?></p>
 <?php endif; ?>
 
-<?php if (!isset($error)): ?>
-    <?php foreach ($posts as $post): ?>
-        <div id="<?=$post['id']?>">
+<?php foreach ($posts as $post): ?>
+    <div id="<?=$post['id']?>">
             <h3>
                 <a href="/?page=post&id=<?= $post['id'] ?>">
                     <?= htmlspecialchars($post['title']) ?>
                 </a>
                 &nbsp;&nbsp;&nbsp;
                 <a href="/?page=post-edit&action=edit&id=<?=$post['id']?>">[edit]</a>
-                &nbsp;&nbsp;&nbsp;
-                <a href="/?page=posts&action=delete&id=<?=$post['id']?>">[X]</a>
                 <button data-id="<?=$post['id']?>" type="button" class="deleteBtn" style="width: 50px;height: 30px; cursor:pointer">[x]</button>
             </h3>
-            <p><?= htmlspecialchars($post['date']) ?></p>
-            <p><?= htmlspecialchars($post['author']) ?></p>
-            <?php include __DIR__ . '/../components/like-button.php'; ?>
-        </div>
-    <?php endforeach; ?>
-<?php else: ?>
-    <?= htmlspecialchars($error) ?>
-<?php endif; ?>
+        <p><?= htmlspecialchars($post['date']) ?></p>
+        <p><?= htmlspecialchars($post['author']) ?></p>
+        <?php include __DIR__ . '/../components/like-button.php'; ?>
+    </div>
+<?php endforeach; ?>
 <script>
     window.onload = function () {
         document.querySelectorAll('.deleteBtn').forEach(button => {

@@ -27,10 +27,4 @@
 
     <br><br>
     <input type="submit" value="Создать">
-
-    <!--
-    <input type="checkbox" name="tags[]" value="Политика">
-    <input type="checkbox" name="tags[]" value="Жесть">
-    <input type="checkbox" name="tags[]" value="Еда">
-    -->
 </form>
