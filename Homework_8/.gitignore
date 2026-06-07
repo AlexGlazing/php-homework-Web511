@@ -1,0 +1,41 @@
+# PHP / Composer
+/vendor/
+
+# User uploaded files (images, etc.)
+public/upload/*
+!public/upload/.gitkeep
+
+# Environment & secrets
+.env
+.env.local
+.env.*.local
+*.local
+
+# IDE / Editor
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+/cache/
+/tmp/
+
+# Optional: if you don't want to commit the lockfile (usually you DO want to commit it for homework/projects)
+# composer.lock
