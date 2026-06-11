@@ -1,4 +1,7 @@
 <h2>Вход</h2>
+<?php if (!empty($registered)): ?>
+    <p class="success-message"><?= htmlspecialchars($registered) ?></p>
+<?php endif; ?>
 <?php if (!empty($error)): ?>
     <p class="error-message"><?= htmlspecialchars($error) ?></p>
 <?php endif; ?>
@@ -10,8 +13,12 @@
     <label>Пароль</label>
     <input type="password" name="password" required autocomplete="current-password">
 
-    <input type="submit" value="Войти">
+    <button type="submit">Войти</button>
 </form>
+
+<p style="margin-top: 16px;">
+    Нет аккаунта? <a href="/?page=register">Зарегистрироваться</a>
+</p>
 
 <p style="margin-top: 16px; color: var(--text-muted); font-size: 0.9rem;">
     Демо-доступ: <strong>admin</strong> / <strong>123</strong>

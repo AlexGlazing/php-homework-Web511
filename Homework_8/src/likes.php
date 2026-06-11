@@ -2,101 +2,65 @@
 
 namespace CompanyName\Blog;
 
-/** @var array<string, list<string>>|null */
-$likesMemory = null;
-
-function loadLikes(): array
-{
-    global $likesMemory;
-
-    if ($likesMemory !== null) {
-        return $likesMemory;
-    }
-
-    $filePath = dirname(__DIR__) . '/data/likes.json';
-
-    if (!file_exists($filePath)) {
-        $likesMemory = [];
-        return $likesMemory;
-    }
-
-    $fileData = file_get_contents($filePath);
-
-    if ($fileData === false || $fileData === '') {
-        $likesMemory = [];
-        return $likesMemory;
-    }
-
-    $likesMemory = decodeData($fileData);
-
-    return $likesMemory;
-}
-
-function saveLikes(array $likes): void
-{
-    global $likesMemory;
-
-    $likesMemory = $likes;
-
-    $filePath = dirname(__DIR__) . '/data/likes.json';
-
-    if (file_put_contents($filePath, json_encode($likes, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)) === false) {
-        throw new \RuntimeException('Не удалось сохранить лайки');
-    }
-}
-
 function getCurrentUserId(): string
 {
+    // Для зарегистрированных пользователей (после входа через /?page=login)
+    // используем стабильный идентификатор на основе их id в таблице users.
+    // Формат: "user:<id>", например "user:42".
+    // Это даёт каждому аккаунту свои собственные лайки, независимо от браузера/кук.
+    if (!empty($_SESSION['user']['id'])) {
+        return 'user:' . (int)$_SESSION['user']['id'];
+    }
+
+    // Для анонимных посетителей (и гостей) используем значение из куки 'uid'.
+    // Куки uid генерируется один раз на браузер (см. index.php) и хранится год.
+    // Это сохраняет обратную совместимость со всеми существующими анонимными лайками.
     return $_COOKIE['uid'] ?? 'guest';
 }
 
 function getLikeCount(int|string $postId): int
 {
-    $likes = loadLikes();
-    $key = (string)$postId;
+    $db = getDb();
+    $stmt = $db->prepare('SELECT COUNT(*) as cnt FROM likes WHERE post_id = ?');
+    $stmt->execute([(int)$postId]);
+    $row = $stmt->fetch();
 
-    return isset($likes[$key]) ? count($likes[$key]) : 0;
+    return (int)($row['cnt'] ?? 0);
 }
 
 function isLiked(int|string $postId): bool
 {
-    $likes = loadLikes();
-    $key = (string)$postId;
-    $userId = getCurrentUserId();
+    $db = getDb();
+    $stmt = $db->prepare('SELECT 1 FROM likes WHERE post_id = ? AND user_id = ?');
+    $stmt->execute([(int)$postId, getCurrentUserId()]);
 
-    return isset($likes[$key]) && in_array($userId, $likes[$key], true);
+    return (bool)$stmt->fetch();
 }
 
 function toggleLike(int|string $postId): array
 {
-    $likes = loadLikes();
-    $key = (string)$postId;
-    $userId = getCurrentUserId();
+    $db = getDb();
+    $pid = (int)$postId;
+    $uid = getCurrentUserId();
 
-    if (!isset($likes[$key])) {
-        $likes[$key] = [];
-    }
+    $check = $db->prepare('SELECT 1 FROM likes WHERE post_id = ? AND user_id = ?');
+    $check->execute([$pid, $uid]);
+    $exists = (bool)$check->fetch();
 
-    $index = array_search($userId, $likes[$key], true);
-
-    if ($index !== false) {
-        array_splice($likes[$key], $index, 1);
+    if ($exists) {
+        $del = $db->prepare('DELETE FROM likes WHERE post_id = ? AND user_id = ?');
+        $del->execute([$pid, $uid]);
         $liked = false;
     } else {
-        $likes[$key][] = $userId;
+        $ins = $db->prepare('INSERT OR IGNORE INTO likes (post_id, user_id) VALUES (?, ?)');
+        $ins->execute([$pid, $uid]);
         $liked = true;
     }
-
-    if (empty($likes[$key])) {
-        unset($likes[$key]);
-    }
-
-    saveLikes($likes);
 
     return [
         'status' => 'success',
         'liked' => $liked,
-        'count' => getLikeCount($postId),
+        'count' => getLikeCount($pid),
     ];
 }
 

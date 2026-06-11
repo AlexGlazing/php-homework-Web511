@@ -5,7 +5,9 @@
           "src/app.php",
           "src/categories.php",
           "src/posts.php",
-          "src/likes.php"
+          "src/likes.php",
+          "src/users.php",
+          "src/db.php"
         ]
     },
     "require-dev": {

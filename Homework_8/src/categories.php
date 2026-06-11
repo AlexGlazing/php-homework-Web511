@@ -4,30 +4,43 @@ namespace CompanyName\Blog;
 
 function getCategoryBySlug(string $slug): array
 {
-    $categories = getCategories();
-    $filtered = array_filter($categories, fn($cat) => $cat['slug'] === $slug);
+    $db = getDb();
+    $stmt = $db->prepare('SELECT * FROM categories WHERE slug = ?');
+    $stmt->execute([$slug]);
+    $cat = $stmt->fetch();
 
-    if (empty($filtered)) {
+    if ($cat === false) {
         throw new \OutOfBoundsException("Категория с slug '{$slug}' не найдена");
     }
 
-    return array_values($filtered)[0];
+    return $cat;
 }
 
 function getCategoryById(int $id): array
 {
-    $category = getCategories();
+    $db = getDb();
+    $stmt = $db->prepare('SELECT * FROM categories WHERE id = ?');
+    $stmt->execute([$id]);
+    $cat = $stmt->fetch();
 
-    if (!isset($category[$id])) {
+    if ($cat === false) {
         throw new \OutOfBoundsException("Категория не найдена");
     }
 
-    return $category[$id];
+    return $cat;
 }
 
-function getCategories()
+function getCategories(): array
 {
-    $categoriesData = readFileData('categories.json');
-    return decodeData($categoriesData);
+    $db = getDb();
+    $stmt = $db->query('SELECT * FROM categories ORDER BY id');
+    $rows = $stmt->fetchAll();
+
+    $result = [];
+    foreach ($rows as $row) {
+        $result[$row['id']] = $row;
+    }
+
+    return $result;
 }
 

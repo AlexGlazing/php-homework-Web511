@@ -22,12 +22,17 @@
                 <span class="toggle-text">Тёмная тема</span>
             </label>
 
-            <!-- Admin auth widget (cookie uid for likes kept; admin flag in session) -->
+            <a href="/?page=register" class="auth-link" title="Создать новый аккаунт">регистрация</a>
+
+            <!-- Auth widget: admin (special) or regular registered user -->
             <?php if (!empty($_SESSION['is_admin'])): ?>
                 <span class="stat">Админ</span>
                 <a href="/?page=logout" class="auth-link" title="Выйти из аккаунта администратора">выйти</a>
+            <?php elseif (!empty($_SESSION['user']['nickname'])): ?>
+                <span class="stat"><?= htmlspecialchars($_SESSION['user']['nickname']) ?></span>
+                <a href="/?page=logout" class="auth-link" title="Выйти из аккаунта">выйти</a>
             <?php else: ?>
-                <a href="/?page=login" class="auth-link" title="Войти для создания и редактирования постов">войти</a>
+                <a href="/?page=login" class="auth-link" title="Войти в аккаунт">войти</a>
             <?php endif; ?>
         </div>
     </header>

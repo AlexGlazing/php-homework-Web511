@@ -10,4 +10,6 @@ return array(
     '4f06510e140285a5b0f488d38f67c429' => $baseDir . '/src/categories.php',
     '9f2440e4c38831d3aafda6d8a5bd603c' => $baseDir . '/src/posts.php',
     'c72091ae0dccad6c650d49a6fc1444e2' => $baseDir . '/src/likes.php',
+    'fc516bdba8bec8d56617a96cbe778731' => $baseDir . '/src/users.php',
+    'b244302456ffca060a6e07d98dbb8944' => $baseDir . '/src/db.php',
 );

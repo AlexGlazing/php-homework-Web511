@@ -11,6 +11,10 @@ public/upload/*
 .env.*.local
 *.local
 
+# Database (SQLite)
+database.db
+database.db-journal
+
 # IDE / Editor
 .idea/
 .vscode/

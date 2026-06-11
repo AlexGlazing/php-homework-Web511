@@ -11,6 +11,8 @@ class ComposerStaticInite1956addfcc91a321d0b1888d261c456
         '4f06510e140285a5b0f488d38f67c429' => __DIR__ . '/../..' . '/src/categories.php',
         '9f2440e4c38831d3aafda6d8a5bd603c' => __DIR__ . '/../..' . '/src/posts.php',
         'c72091ae0dccad6c650d49a6fc1444e2' => __DIR__ . '/../..' . '/src/likes.php',
+        'fc516bdba8bec8d56617a96cbe778731' => __DIR__ . '/../..' . '/src/users.php',
+        'b244302456ffca060a6e07d98dbb8944' => __DIR__ . '/../..' . '/src/db.php',
     );
 
     public static $classMap = array (

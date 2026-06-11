@@ -8,8 +8,10 @@
         <p><img src="/upload/<?= htmlspecialchars($post['image']) ?>" alt="" style="width: 200px"></p>
     <?php endif; ?>
     <p><?= htmlspecialchars($post['content']) ?></p>
-    <span><?= htmlspecialchars($post['date']) ?></span>
-    <span><?= htmlspecialchars($post['author']) ?></span>
+    <div class="post-meta">
+        <span class="post-date"><?= htmlspecialchars($post['date']) ?></span>
+        <span class="post-author"><?= htmlspecialchars($post['author']) ?></span>
+    </div>
     <p>
         <?php include __DIR__ . '/../components/like-button.php'; ?>
     </p>

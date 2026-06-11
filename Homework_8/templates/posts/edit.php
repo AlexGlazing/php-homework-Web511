@@ -1,27 +1,27 @@
 <h2>Редактировать пост</h2>
+
 <form action="/?page=post-edit&action=save" method="post">
-    <input type="text" name="id" readonly hidden value="<?= $post['id'] ?? $id ?? '' ?>">
-    Категория:<br>
-    <select name="category_id">
-            <?php foreach ($categories as $category): ?>
+    <input type="text" name="id" readonly hidden value="<?= htmlspecialchars((string)($post['id'] ?? $id ?? '')) ?>">
+
+    <label for="category_id">Категория</label>
+    <select name="category_id" id="category_id">
+        <?php foreach ($categories as $category): ?>
             <option <?= ($category['id'] == ($post['category_id'] ?? $category_id)) ? 'selected' : '' ?>
-                    value="<?= $category['id'] ?>"><?= $category['name'] ?></option>
+                    value="<?= $category['id'] ?>"><?= htmlspecialchars($category['name']) ?></option>
         <?php endforeach; ?>
-    </select><br>
+    </select>
 
-    Заголовок поста:<br>
-    <input type="text" name="title" value="<?= $post['title'] ?? $title ?? '' ?>">
+    <label for="title">Заголовок поста</label>
+    <input type="text" name="title" id="title" value="<?= htmlspecialchars($post['title'] ?? $title ?? '') ?>">
     <?php if (!empty($errors['title'])): ?>
-        <p style="color:red"><?= $errors['title'] ?></p>
+        <p class="error-message"><?= htmlspecialchars($errors['title']) ?></p>
     <?php endif; ?>
-    <br>
-    Текст поста:<br>
-    <textarea name="content"><?= $post['content'] ?? $content ?? '' ?></textarea>
+
+    <label for="content">Текст поста</label>
+    <textarea name="content" id="content"><?= htmlspecialchars($post['content'] ?? $content ?? '') ?></textarea>
     <?php if (!empty($errors['content'])): ?>
-        <p style="color:red"><?= $errors['content'] ?></p>
+        <p class="error-message"><?= htmlspecialchars($errors['content']) ?></p>
     <?php endif; ?>
-    <br><br>
-    <input type="submit" value="Изменить">
 
-
+    <button type="submit">Изменить</button>
 </form>

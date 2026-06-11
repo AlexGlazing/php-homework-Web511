@@ -1,30 +1,31 @@
-<h2>Cоздать пост</h2>
+<h2>Создать пост</h2>
+
 <form action="" method="post" enctype="multipart/form-data">
-    Категория:<br>
-    <select name="category_id">
+    <label for="category_id">Категория</label>
+    <select name="category_id" id="category_id">
         <?php foreach ($categories as $category): ?>
             <option <?= ($category['id'] === $category_id) ? 'selected' : '' ?>
-                    value="<?= $category['id'] ?>"><?= $category['name'] ?></option>
+                    value="<?= $category['id'] ?>"><?= htmlspecialchars($category['name']) ?></option>
         <?php endforeach; ?>
-    </select><br>
+    </select>
 
-    Заголовок поста:<br>
-    <input type="text" name="title" value="<?= $title ?? '' ?>">
+    <label for="title">Заголовок поста</label>
+    <input type="text" name="title" id="title" value="<?= htmlspecialchars($title ?? '') ?>">
     <?php if (!empty($errors['title'])): ?>
-        <p style="color:red"><?= $errors['title'] ?></p>
+        <p class="error-message"><?= htmlspecialchars($errors['title']) ?></p>
     <?php endif; ?>
-    <br>
-    Текст поста:<br>
-    <textarea name="content"><?= $content ?? '' ?></textarea>
-    <?php if (!empty($errors['content'])): ?>
-        <p style="color:red"><?= $errors['content'] ?></p>
-    <?php endif; ?>
-    <br>
-    <input type="file" name="image"><br>
-    <?php if (!empty($errors['image'])):?>
-        <p style="color:red"><?=$errors['image']?></p>
-    <?php endif;?>
 
-    <br><br>
-    <input type="submit" value="Создать">
+    <label for="content">Текст поста</label>
+    <textarea name="content" id="content"><?= htmlspecialchars($content ?? '') ?></textarea>
+    <?php if (!empty($errors['content'])): ?>
+        <p class="error-message"><?= htmlspecialchars($errors['content']) ?></p>
+    <?php endif; ?>
+
+    <label for="image">Изображение поста</label>
+    <input type="file" name="image" id="image">
+    <?php if (!empty($errors['image'])): ?>
+        <p class="error-message"><?= htmlspecialchars($errors['image']) ?></p>
+    <?php endif; ?>
+
+    <button type="submit">Создать</button>
 </form>

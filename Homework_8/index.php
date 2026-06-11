@@ -14,6 +14,13 @@ use function CompanyName\Blog\render_template;
 use function CompanyName\Blog\redirectToError;
 use function CompanyName\Blog\toggleLike;
 use function CompanyName\Blog\updatePost;
+use function CompanyName\Blog\createPost;
+use function CompanyName\Blog\deletePost;
+use function CompanyName\Blog\createUser;
+use function CompanyName\Blog\emailExists;
+use function CompanyName\Blog\nicknameExists;
+use function CompanyName\Blog\authenticateUser;
+use function CompanyName\Blog\getCurrentUser;
 
 session_start();
 
@@ -28,7 +35,9 @@ if (!in_array($theme, ['light', 'dark'], true)) {
 }
 $_COOKIE['theme'] = $theme;
 
-// Ensure a persistent uid cookie for like identity (cookie-backed, as requested)
+// Ensure a persistent uid cookie for *anonymous* like identity (cookie-backed).
+// When a user is logged in via the users table, likes use "user:<id>" instead (see src/likes.php).
+// The cookie uid remains as fallback for guests and pre-login anonymous likes.
 if (empty($_COOKIE['uid'])) {
     $uid = bin2hex(random_bytes(16));
     setcookie('uid', $uid, time() + 3600 * 24 * 365, '/');
@@ -66,32 +75,111 @@ try {
             exit;
 
         case $page === 'login':
+            // If already authenticated (admin or regular registered user), redirect away from login form
             if (isAdmin()) {
                 header('Location: /?page=posts');
                 exit;
             }
+            $currentUser = getCurrentUser();
+            if ($currentUser !== null) {
+                header('Location: /');
+                exit;
+            }
+
             $error = null;
+            $registered = isset($_GET['registered']) && $_GET['registered'] === '1'
+                ? 'Регистрация успешна! Теперь вы можете войти.'
+                : null;
+
             if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $login = trim($_POST['login'] ?? '');
                 $password = $_POST['password'] ?? '';
+
+                // 1) Hardcoded admin (for post management)
                 if ($login === 'admin' && $password === '123') {
                     $_SESSION['is_admin'] = true;
                     $redirect = $_GET['redirect'] ?? '/?page=posts';
                     header('Location: ' . $redirect);
                     exit;
-                } else {
-                    $error = 'Неверный логин или пароль';
                 }
+
+                // 2) Registered user login (by nickname or email)
+                $authenticated = authenticateUser($login, $password);
+                if ($authenticated !== null) {
+                    $_SESSION['user'] = $authenticated;
+                    $redirect = $_GET['redirect'] ?? '/';
+                    header('Location: ' . $redirect);
+                    exit;
+                }
+
+                // Neither worked
+                $error = 'Неверный логин или пароль';
             }
+
             echo render('login', [
                 'error' => $error,
+                'registered' => $registered,
             ]);
             break;
 
         case $page === 'logout':
             unset($_SESSION['is_admin']);
+            unset($_SESSION['user']);
             header('Location: /');
             exit;
+
+        case $page === 'register':
+            $errors = [];
+            $nickname = '';
+            $email = '';
+
+            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                $nickname = trim($_POST['nickname'] ?? '');
+                $email = trim($_POST['email'] ?? '');
+                $password = $_POST['password'] ?? '';
+                $passwordConfirm = $_POST['password_confirm'] ?? '';
+
+                if (empty($nickname)) {
+                    $errors['nickname'] = 'Введите никнейм';
+                } elseif (nicknameExists($nickname)) {
+                    $errors['nickname'] = 'Такой никнейм уже занят';
+                }
+
+                if (empty($email)) {
+                    $errors['email'] = 'Введите email';
+                } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                    $errors['email'] = 'Некорректный email';
+                } elseif (emailExists($email)) {
+                    $errors['email'] = 'Этот email уже зарегистрирован';
+                }
+
+                if (empty($password)) {
+                    $errors['password'] = 'Введите пароль';
+                } elseif (strlen($password) < 6) {
+                    $errors['password'] = 'Пароль должен быть не короче 6 символов';
+                }
+
+                if ($password !== $passwordConfirm) {
+                    $errors['password_confirm'] = 'Пароли не совпадают';
+                }
+
+                if (empty($errors)) {
+                    createUser($nickname, $email, $password);
+                    header('Location: /?page=login&registered=1');
+                    exit;
+                }
+
+                // Pre-escape for safe re-display in form (matching existing pattern)
+                $nickname = htmlspecialchars($nickname);
+                $email = htmlspecialchars($email);
+            }
+
+            echo render('register', [
+                'nickname' => $nickname,
+                'email' => $email,
+                'errors' => $errors,
+            ]);
+            break;
 
         case $page === 'index':
             echo render('index', ['isAdmin' => isAdmin()]);
@@ -104,9 +192,9 @@ try {
                     exit;
                 }
                 $id = $_GET['id'] ?? null;
-                $posts = getPosts();
-                unset($posts[$id]);
-                file_put_contents(__DIR__ . '/data/posts.json', json_encode($posts, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+                if ($id !== null) {
+                    deletePost((int)$id);
+                }
 
                 if (isset($_GET['ajax'])) {
                     $result = [
@@ -208,24 +296,16 @@ try {
                 }
 
                 if (empty($errors)) {
-                    $posts = getPosts();
-
-                    $posts[] = [
+                    $newId = createPost([
                         'category_id' => $category_id,
                         'title' => $title,
                         'content' => $content,
                         'date' => date('Y-m-d H:i'),
                         'author' => 'Администратор',
-                    ];
+                        'image' => $safeFileName,
+                    ]);
 
-                    $lastKey = array_key_last($posts);
-                    $posts[$lastKey]['id'] = $lastKey;
-                    $posts[$lastKey] = array_merge(['id' => $lastKey], $posts[$lastKey]);
-                    $posts[$lastKey]['image'] = $safeFileName;
-
-                    file_put_contents(__DIR__ . '/data/posts.json', json_encode($posts, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
-
-                    header("Location: /?page=post&id=$lastKey&success=ok");
+                    header("Location: /?page=post&id=$newId&success=ok");
                     die();
                 }
             }
@@ -326,6 +406,7 @@ try {
             echo render('posts/posts-category', [
                 'posts' => $posts,
                 'category' => $category,
+                'isAdmin' => isAdmin(),
             ]);
             break;
 

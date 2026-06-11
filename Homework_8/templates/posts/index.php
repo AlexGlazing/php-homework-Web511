@@ -13,13 +13,16 @@
                     <?= htmlspecialchars($post['title']) ?>
                 </a>
                 <?php if (!empty($isAdmin)): ?>
-                    &nbsp;&nbsp;&nbsp;
-                    <a href="/?page=post-edit&action=edit&id=<?=$post['id']?>">[edit]</a>
-                    <button data-id="<?=$post['id']?>" type="button" class="deleteBtn" style="width: 50px;height: 30px; cursor:pointer">[x]</button>
+                    <span class="admin-controls">
+                        <a href="/?page=post-edit&action=edit&id=<?=$post['id']?>" class="editBtn">✏️ Редактировать</a>
+                        <button data-id="<?=$post['id']?>" type="button" class="deleteBtn">🗑️ Удалить</button>
+                    </span>
                 <?php endif; ?>
             </h3>
-        <p><?= htmlspecialchars($post['date']) ?></p>
-        <p><?= htmlspecialchars($post['author']) ?></p>
+        <div class="post-meta">
+            <span class="post-date"><?= htmlspecialchars($post['date']) ?></span>
+            <span class="post-author"><?= htmlspecialchars($post['author']) ?></span>
+        </div>
         <?php include __DIR__ . '/../components/like-button.php'; ?>
     </div>
 <?php endforeach; ?>
@@ -36,7 +39,13 @@
                             const result = await response.json();
                             switch (result.status) {
                                 case 'success':
-                                    document.getElementById(id).remove();
+                                    const postElement = document.getElementById(id);
+                                    postElement.style.transition = 'all 0.5s ease';
+                                    postElement.style.opacity = '0';
+                                    postElement.style.transform = 'translateY(-20px)';
+                                    setTimeout(() => {
+                                        postElement.remove();
+                                    }, 500);
                                     break;
                                 case 'error':
                                     console.error('Ошибка: не могу удалить');

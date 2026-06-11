@@ -2,39 +2,42 @@
 
 namespace CompanyName\Blog;
 
-function updatePost(array $post):void
+function updatePost(array $post): void
 {
-    $id = $post['id'];
-    $posts = getPosts();
+    $db = getDb();
+    $stmt = $db->prepare('UPDATE posts SET title = ?, content = ?, category_id = ? WHERE id = ?');
+    $success = $stmt->execute([
+        $post['title'],
+        $post['content'],
+        $post['category_id'],
+        $post['id'],
+    ]);
 
-
-    $posts[$id] = [...$post, ...[
-        'date' => $posts[$id]['date'],
-        'author' => $posts[$id]['author']
-    ]];
-
-    if (!file_put_contents(dirname(__DIR__) . '/data/posts.json', json_encode($posts, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT))) {
+    if (!$success) {
         throw new \Exception("Не удалось сохранить данные");
     }
 }
 
 function getPost(int $id): array
 {
-    $posts = getPosts();
+    $db = getDb();
+    $stmt = $db->prepare('SELECT * FROM posts WHERE id = ?');
+    $stmt->execute([$id]);
+    $post = $stmt->fetch();
 
-    if (!isset($posts[$id])) {
+    if ($post === false) {
         throw new \OutOfBoundsException("Пост не найден");
     }
 
-    return $posts[$id];
+    return $post;
 }
 
 function getPosts(): array
 {
-    $postsData = readFileData('posts.json');
-    return decodeData($postsData);
+    $db = getDb();
+    $stmt = $db->query('SELECT * FROM posts ORDER BY id');
+    return $stmt->fetchAll();
 }
-
 
 function getPostsCategoriesBySlug(string $slug): array
 {
@@ -43,15 +46,40 @@ function getPostsCategoriesBySlug(string $slug): array
     return getPostsCategoriesById($category['id']);
 }
 
-
 function getPostsCategoriesById(int $id): array
 {
-    $posts = getPosts();
+    $db = getDb();
+    $stmt = $db->prepare('SELECT * FROM posts WHERE category_id = ? ORDER BY id');
+    $stmt->execute([$id]);
+    return $stmt->fetchAll();
+}
 
-    $filteredPosts = array_filter($posts, function ($post) use ($id) {
-        return isset($post['category_id']) && $post['category_id'] === $id;
-    });
+function createPost(array $data): int
+{
+    $db = getDb();
+    $stmt = $db->prepare(
+        'INSERT INTO posts (category_id, title, content, date, author, image) VALUES (?, ?, ?, ?, ?, ?)'
+    );
+    $success = $stmt->execute([
+        $data['category_id'] ?? null,
+        $data['title'],
+        $data['content'],
+        $data['date'],
+        $data['author'],
+        $data['image'] ?? null,
+    ]);
 
-    return array_values($filteredPosts);
+    if (!$success) {
+        throw new \Exception("Не удалось создать пост");
+    }
+
+    return (int)$db->lastInsertId();
+}
+
+function deletePost(int $id): void
+{
+    $db = getDb();
+    $stmt = $db->prepare('DELETE FROM posts WHERE id = ?');
+    $stmt->execute([$id]);
 }
 
