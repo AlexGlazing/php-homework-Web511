@@ -1,0 +1,23 @@
+{
+    "name": "ember/homework9",
+    "autoload": {
+        "files": [
+            "config/app.php",
+            "src/db.php",
+            "src/app.php",
+            "src/auth.php",
+            "src/upload.php",
+            "Models/category.php",
+            "Models/post.php",
+            "Models/user.php",
+            "Models/likes.php",
+            "Controllers/indexController.php",
+            "Controllers/postsController.php",
+            "Controllers/postController.php",
+            "Controllers/categoryController.php",
+            "Controllers/authController.php",
+            "Controllers/likeController.php",
+            "Controllers/errorHandlerController.php"
+        ]
+    }
+}
